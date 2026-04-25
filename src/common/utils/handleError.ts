@@ -26,19 +26,22 @@ export const handleError = (
           error = JSON.stringify(result.error.data)
         }
         break
-      default:
-        if (result.error.status >= 500 && result.error.status < 600) {
+      default: {
+        const { status } = result.error
+        if (typeof status === "number" && status >= 500 && status < 600) {
           error = "Server error occurred. Please try again later."
         } else {
           error = JSON.stringify(result.error)
         }
         break
+      }
     }
     api.dispatch(setAppErrorAC({ error }))
   }
   
-  if ((result.data as { resultCode: ResultCode }).resultCode === ResultCode.Error) {
-    const messages = (result.data as { messages: string[] }).messages
+  const data = result.data as { resultCode?: ResultCode; messages?: string[] } | undefined
+  if (data?.resultCode === ResultCode.Error) {
+    const messages = data.messages ?? []
     error = messages.length ? messages[0] : error
     api.dispatch(setAppErrorAC({ error }))
   }
